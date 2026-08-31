@@ -71,7 +71,7 @@ export async function sparseSearch(
     let matchScore = 0;
 
     for (const kw of rawKeywords) {
-      const occurrences = (textToMatch.match(new RegExp(kw, "gi")) || []).length;
+      const occurrences = textToMatch.split(kw).length - 1;
       if (occurrences > 0) {
         matchScore += 1 + Math.log(1 + occurrences);
       }

@@ -1,7 +1,6 @@
 "use client";
 
 import { testEmbedDocument } from "@/actions/documents/test-embed";
-import { sendMessage } from "@/actions/chat/send-message";
 import { useState } from "react";
 import { askQuestion } from "@/actions/chat/ask-question";
 

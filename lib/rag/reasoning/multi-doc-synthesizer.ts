@@ -4,7 +4,6 @@ import { hybridRetrieve } from "@/lib/rag/retrieval/hybrid-retriever";
 import { rerankChunks } from "@/lib/rag/reranking/cohere-reranker";
 import { buildGroundedContext } from "./context-builder";
 import { groq } from "@/lib/ai/groq";
-import { FusedRetrievedChunk } from "@/lib/rag/retrieval/types";
 import { RerankedChunk } from "@/lib/rag/reranking/types";
 
 export interface MultiDocComparisonParams {

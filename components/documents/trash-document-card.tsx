@@ -2,10 +2,8 @@
 
 import { useTransition } from "react";
 import {
-  Trash2,
   RotateCcw,
   XCircle,
-  AlertTriangle,
   FileText,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";

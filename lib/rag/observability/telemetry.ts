@@ -28,24 +28,25 @@ export interface ObservabilityMetrics {
  * Calculates aggregated RAG pipeline telemetry and latency breakdown for the current workspace.
  */
 export async function getPipelineTelemetry(workspaceId: string): Promise<ObservabilityMetrics> {
-  const logs = await prisma.pipelineLog.findMany({
-    where: { workspaceId },
-    orderBy: { createdAt: "desc" },
-    take: 100,
-  });
+  try {
+    const logs = await prisma.pipelineLog.findMany({
+      where: { workspaceId },
+      orderBy: { createdAt: "desc" },
+      take: 100,
+    });
 
-  if (logs.length === 0) {
-    return {
-      totalQueries: 0,
-      successRate: 100,
-      avgTotalLatencyMs: 0,
-      avgRetrievalLatencyMs: 0,
-      avgRerankLatencyMs: 0,
-      avgLlmLatencyMs: 0,
-      totalTokensEstimated: 0,
-      recentLogs: [],
-    };
-  }
+    if (logs.length === 0) {
+      return {
+        totalQueries: 0,
+        successRate: 100,
+        avgTotalLatencyMs: 0,
+        avgRetrievalLatencyMs: 0,
+        avgRerankLatencyMs: 0,
+        avgLlmLatencyMs: 0,
+        totalTokensEstimated: 0,
+        recentLogs: [],
+      };
+    }
 
   const successCount = logs.filter((l) => l.success).length;
   const successRate = Math.round((successCount / logs.length) * 1000) / 10;
@@ -73,26 +74,39 @@ export async function getPipelineTelemetry(workspaceId: string): Promise<Observa
     0
   );
 
-  return {
-    totalQueries: logs.length,
-    successRate,
-    avgTotalLatencyMs,
-    avgRetrievalLatencyMs,
-    avgRerankLatencyMs,
-    avgLlmLatencyMs,
-    totalTokensEstimated,
-    recentLogs: logs.slice(0, 20).map((l) => ({
-      id: l.id,
-      query: l.query,
-      intent: l.intent,
-      totalMs: l.totalMs,
-      retrievalMs: l.retrievalMs,
-      rerankMs: l.rerankMs,
-      llmMs: l.llmMs,
-      chunksRetrieved: l.chunksRetrieved,
-      chunksReranked: l.chunksReranked,
-      success: l.success,
-      createdAt: l.createdAt,
-    })),
-  };
+    return {
+      totalQueries: logs.length,
+      successRate,
+      avgTotalLatencyMs,
+      avgRetrievalLatencyMs,
+      avgRerankLatencyMs,
+      avgLlmLatencyMs,
+      totalTokensEstimated,
+      recentLogs: logs.slice(0, 20).map((l) => ({
+        id: l.id,
+        query: l.query,
+        intent: l.intent,
+        totalMs: l.totalMs,
+        retrievalMs: l.retrievalMs,
+        rerankMs: l.rerankMs,
+        llmMs: l.llmMs,
+        chunksRetrieved: l.chunksRetrieved,
+        chunksReranked: l.chunksReranked,
+        success: l.success,
+        createdAt: l.createdAt,
+      })),
+    };
+  } catch (err) {
+    console.warn("[Telemetry Fetch Error] Using empty defaults:", err);
+    return {
+      totalQueries: 0,
+      successRate: 100,
+      avgTotalLatencyMs: 0,
+      avgRetrievalLatencyMs: 0,
+      avgRerankLatencyMs: 0,
+      avgLlmLatencyMs: 0,
+      totalTokensEstimated: 0,
+      recentLogs: [],
+    };
+  }
 }

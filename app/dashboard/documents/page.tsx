@@ -35,6 +35,12 @@ export default async function DocumentsPage() {
             <span className="text-muted-foreground">Indexed: </span>
             <span className="font-semibold text-emerald-600 dark:text-emerald-400">{indexedCount}</span>
           </div>
+          {totalTokens > 0 && (
+            <div className="rounded-xl border bg-card/60 px-3.5 py-2 text-xs backdrop-blur-xs">
+              <span className="text-muted-foreground">Tokens: </span>
+              <span className="font-semibold text-primary">{totalTokens.toLocaleString()}</span>
+            </div>
+          )}
         </div>
       </div>
 

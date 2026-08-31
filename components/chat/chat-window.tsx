@@ -58,7 +58,6 @@ export default function ChatWindow({ chatId }: ChatWindowProps) {
   const [sending, setSending] = useState(false);
   const [error, setError] = useState("");
   const [streamingStatus, setStreamingStatus] = useState<string | null>(null);
-  const [activeSources, setActiveSources] = useState<Source[]>([]);
   const [selectedChunkId, setSelectedChunkId] = useState<string | null>(null);
   const [citationDrawerOpen, setCitationDrawerOpen] = useState(false);
   const [copiedId, setCopiedId] = useState<string | null>(null);
@@ -158,7 +157,6 @@ export default function ChatWindow({ chatId }: ChatWindowProps) {
     setError("");
     setSending(true);
     setStreamingStatus("Analyzing query & searching knowledge base...");
-    setActiveSources([]);
 
     // 1. Optimistic User Message
     const userMsgId = crypto.randomUUID();
@@ -205,8 +203,10 @@ export default function ChatWindow({ chatId }: ChatWindowProps) {
       const reader = response.body.getReader();
       const decoder = new TextDecoder();
       let buffer = "";
-      let accumulatedContent = "";
-      let streamedSources: Source[] = [];
+      const streamAccumulator = {
+        content: "",
+        sources: [] as Source[],
+      };
 
       while (true) {
         const { value, done } = await reader.read();
@@ -229,33 +229,36 @@ export default function ChatWindow({ chatId }: ChatWindowProps) {
             setStreamingStatus(data.message);
           } else if (eventType === "metadata") {
             if (Array.isArray(data.sources)) {
-              streamedSources = data.sources;
-              setActiveSources(streamedSources);
+              streamAccumulator.sources = data.sources;
+              const currentSources = streamAccumulator.sources;
               setMessages((prev) =>
                 prev.map((msg) =>
                   msg.id === assistantMsgId
-                    ? { ...msg, sources: streamedSources }
+                    ? { ...msg, sources: currentSources }
                     : msg
                 )
               );
             }
           } else if (eventType === "token") {
             setStreamingStatus(null);
-            accumulatedContent += data.token;
+            streamAccumulator.content += data.token;
+            const updatedContent = streamAccumulator.content;
             setMessages((prev) =>
               prev.map((msg) =>
                 msg.id === assistantMsgId
-                  ? { ...msg, content: accumulatedContent }
+                  ? { ...msg, content: updatedContent }
                   : msg
               )
             );
           } else if (eventType === "done") {
             setStreamingStatus(null);
             if (data.messageId) {
+              const finalContent = streamAccumulator.content;
+              const finalSources = streamAccumulator.sources;
               setMessages((prev) =>
                 prev.map((msg) =>
                   msg.id === assistantMsgId
-                    ? { ...msg, id: data.messageId, content: accumulatedContent, sources: streamedSources }
+                    ? { ...msg, id: data.messageId, content: finalContent, sources: finalSources }
                     : msg
                 )
               );
@@ -454,9 +457,8 @@ export default function ChatWindow({ chatId }: ChatWindowProps) {
                         className="flex items-center gap-1 text-[11px] text-muted-foreground transition-colors hover:text-foreground disabled:opacity-40 cursor-pointer"
                       >
                         <RefreshCw
-                          className={`h-3 w-3 ${
-                            regeneratingId === message.id ? "animate-spin text-primary" : ""
-                          }`}
+                          className={`h-3 w-3 ${regeneratingId === message.id ? "animate-spin text-primary" : ""
+                            }`}
                         />
                         {regeneratingId === message.id ? "Regenerating..." : "Regenerate"}
                       </button>

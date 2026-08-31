@@ -8,12 +8,10 @@ import {
   Home,
   MessageSquare,
   Search,
-  Settings,
   Star,
   Trash2,
   Sparkles,
   BarChart3,
-  GitCompare,
 } from "lucide-react";
 
 const navigation = [

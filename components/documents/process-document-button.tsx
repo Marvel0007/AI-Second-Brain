@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { CheckCircle2, Loader2, Play } from "lucide-react";
+import { Loader2, Play } from "lucide-react";
 import { processDocument } from "@/actions/documents/process-document";
 import { Button } from "@/components/ui/button";
 

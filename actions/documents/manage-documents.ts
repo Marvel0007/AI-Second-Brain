@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { requireCurrentWorkspace } from "@/lib/workspace";
 import { prisma } from "@/lib/prisma";
+import { deleteDocumentVectors } from "@/lib/rag/embeddings/pinecone-batch";
 
 /**
  * Search documents by title or file name within the current workspace.
@@ -124,6 +125,9 @@ export async function deleteDocumentPermanently(documentId: string) {
   if (!document) {
     throw new Error("Document not found");
   }
+
+  // Delete vectors in Pinecone
+  await deleteDocumentVectors(documentId, workspace.id);
 
   await prisma.document.delete({
     where: { id: documentId },

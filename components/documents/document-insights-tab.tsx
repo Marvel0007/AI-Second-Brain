@@ -4,11 +4,9 @@ import { useState } from "react";
 import {
   Sparkles,
   BookOpen,
-  HelpCircle,
   Loader2,
   CheckCircle2,
   XCircle,
-  RotateCcw,
   ListCheck,
   GraduationCap,
 } from "lucide-react";

@@ -12,6 +12,9 @@ const pinecone = new Pinecone({
   apiKey,
 });
 
-export const pineconeIndex = pinecone.index(
-  process.env.PINECONE_INDEX || "braindock"
-);
+const indexName =
+  process.env.PINECONE_INDEX_NAME || process.env.PINECONE_INDEX || "braindock";
+
+export const pineconeIndex = process.env.PINECONE_HOST
+  ? pinecone.index(indexName, process.env.PINECONE_HOST)
+  : pinecone.index(indexName);

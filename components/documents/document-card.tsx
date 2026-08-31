@@ -4,17 +4,14 @@ import Link from "next/link";
 import { useState } from "react";
 import {
   FileText,
-  MoreVertical,
   Star,
   Trash2,
-  ExternalLink,
   Sparkles,
   Layers,
   CheckCircle2,
   AlertTriangle,
   Loader2,
 } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ProcessDocumentButton } from "@/components/documents/process-document-button";
 import {
@@ -166,6 +163,12 @@ export function DocumentCard({
             <Badge variant="outline" className="text-[10px] text-muted-foreground gap-1">
               <Layers className="h-2.5 w-2.5" />
               <span>{tokenCount.toLocaleString()} tokens</span>
+            </Badge>
+          )}
+
+          {fileType && (
+            <Badge variant="outline" className="text-[10px] uppercase font-mono text-muted-foreground">
+              {fileType.split("/").pop()}
             </Badge>
           )}
 

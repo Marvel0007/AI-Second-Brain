@@ -50,24 +50,29 @@ export function CitationDrawer({
     if (!chunkId || !open) return;
 
     let isMounted = true;
-    setLoading(true);
-    setError("");
 
-    getSource(chunkId)
-      .then((data) => {
+    async function loadSource(id: string) {
+      setLoading(true);
+      setError("");
+
+      try {
+        const data = await getSource(id);
         if (isMounted) {
           setSource(data as unknown as SourceDetail);
         }
-      })
-      .catch((err) => {
+      } catch (err) {
         if (isMounted) {
           console.error(err);
           setError("Failed to load source details.");
         }
-      })
-      .finally(() => {
-        if (isMounted) setLoading(false);
-      });
+      } finally {
+        if (isMounted) {
+          setLoading(false);
+        }
+      }
+    }
+
+    loadSource(chunkId);
 
     return () => {
       isMounted = false;

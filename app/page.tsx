@@ -9,7 +9,6 @@ import {
   ArrowRight,
   Zap,
   Shield,
-  Globe,
 } from "lucide-react";
 
 export default function Home() {

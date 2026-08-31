@@ -4,7 +4,7 @@ import { prisma } from "@/lib/prisma";
 export async function requireCurrentWorkspace() {
   const user = await requireUser();
 
-  const workspace = await prisma.workspace.findFirst({
+  let workspace = await prisma.workspace.findFirst({
     where: {
       userId: user.id,
     },
@@ -14,7 +14,12 @@ export async function requireCurrentWorkspace() {
   });
 
   if (!workspace) {
-    throw new Error("Workspace not found");
+    workspace = await prisma.workspace.create({
+      data: {
+        name: "My Workspace",
+        userId: user.id,
+      },
+    });
   }
 
   return workspace;

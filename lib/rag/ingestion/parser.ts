@@ -84,7 +84,7 @@ export async function parseDocument(
     const markdownSections = cleaned.split(/(?=\n#{1,3}\s+)/g);
 
     if (markdownSections.length > 1) {
-      markdownSections.forEach((sectionContent, index) => {
+      markdownSections.forEach((sectionContent) => {
         const trimmed = sectionContent.trim();
         if (trimmed) {
           sections.push({

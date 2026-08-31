@@ -3,7 +3,7 @@
 import React, { useState } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
-import { Check, Copy, FileText } from "lucide-react";
+import { Check, Copy } from "lucide-react";
 import { CitationDrawer } from "./citation-drawer";
 
 interface MarkdownRendererProps {

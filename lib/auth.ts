@@ -1,4 +1,4 @@
-import { auth } from "@clerk/nextjs/server";
+import { auth, currentUser } from "@clerk/nextjs/server";
 
 import { prisma } from "@/lib/prisma";
 
@@ -9,11 +9,31 @@ export async function getCurrentUser() {
     return null;
   }
 
-  return prisma.user.findUnique({
+  let user = await prisma.user.findUnique({
     where: {
       clerkId: userId,
     },
   });
+
+  if (!user) {
+    const clerkUser = await currentUser();
+    if (clerkUser) {
+      const email = clerkUser.emailAddresses[0]?.emailAddress;
+      if (email) {
+        const name =
+          [clerkUser.firstName, clerkUser.lastName].filter(Boolean).join(" ") ||
+          "User";
+
+        user = await prisma.user.upsert({
+          where: { clerkId: userId },
+          update: { email, name },
+          create: { clerkId: userId, email, name },
+        });
+      }
+    }
+  }
+
+  return user;
 }
 
 export async function requireUser() {

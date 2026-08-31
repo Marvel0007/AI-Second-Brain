@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Layers, FileText, ChevronDown, ChevronUp, Copy, Check, Hash, Sparkles } from "lucide-react";
+import { Layers, ChevronDown, ChevronUp, Copy, Check, Hash, Sparkles } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 
 interface ChunkItem {
@@ -38,7 +38,7 @@ export function DocumentChunksTab({ chunks }: DocumentChunksTabProps) {
         <Layers className="h-8 w-8 text-muted-foreground mb-3" />
         <h4 className="font-semibold text-sm">No Chunks Indexed</h4>
         <p className="mt-1 text-xs text-muted-foreground max-w-sm">
-          This document has not been chunked yet. Click "Process Document" above to parse and chunk into Pinecone vectors.
+          This document has not been chunked yet. Click &quot;Process Document&quot; above to parse and chunk into Pinecone vectors.
         </p>
       </div>
     );

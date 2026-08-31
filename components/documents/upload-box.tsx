@@ -1,7 +1,7 @@
 "use client";
 
 import { ChangeEvent, DragEvent, useRef, useState } from "react";
-import { FileText, Upload, X, CheckCircle2, Loader2, Sparkles, FileCode, FileSpreadsheet } from "lucide-react";
+import { FileText, Upload, X, Loader2, Sparkles, FileCode, FileSpreadsheet } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { uploadDocument } from "@/actions/documents/upload-document";
 import { processDocument } from "@/actions/documents/process-document";
