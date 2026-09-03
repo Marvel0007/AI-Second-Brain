@@ -1,36 +1,104 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# StreamForge — High-Performance File Processing & Background Job System
 
-## Getting Started
+StreamForge is a scalable backend system for **asynchronous file processing** using **Node.js, TypeScript, Fastify, PostgreSQL, Prisma, Redis, and BullMQ**.
 
-First, run the development server:
+The system separates file uploads from heavy background processing by using a reliable job queue, allowing the API to remain responsive while workers process files asynchronously.
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+## 🚀 Features
+
+* 📤 File upload and storage management
+* ⚡ Asynchronous background file processing
+* 🔄 BullMQ-based job queue with Redis
+* 🔁 Automatic job retries with exponential backoff
+* ❌ Job cancellation support
+* 🔂 Duplicate job prevention and idempotency
+* 🗄️ PostgreSQL database with Prisma ORM
+* 🔐 Database-level protection against concurrent active jobs
+* 📊 Job processing metadata and statistics
+* ⏸️ Queue pause/resume controls
+* 🧵 Configurable worker concurrency
+* 🐳 Dockerized PostgreSQL and Redis infrastructure
+* 🛡️ Centralized error handling and validation
+* ❤️ Graceful worker shutdown
+* 📈 Processing metrics such as processed bytes and processing time
+
+## 🏗️ Architecture
+
+```text
+Client
+  │
+  ▼
+Fastify API
+  │
+  ├── File Upload
+  │      │
+  │      ▼
+  │   Storage
+  │
+  └── Job Creation
+         │
+         ▼
+      Redis
+     BullMQ Queue
+         │
+         ▼
+   Background Worker
+         │
+         ▼
+   File Processing
+         │
+         ▼
+ PostgreSQL
+   Job + File Status
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## 🛠️ Tech Stack
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+* **Runtime:** Node.js
+* **Language:** TypeScript
+* **Framework:** Fastify
+* **Database:** PostgreSQL
+* **ORM:** Prisma
+* **Queue:** BullMQ
+* **Message Broker:** Redis
+* **Infrastructure:** Docker & Docker Compose
+* **Validation:** Zod
+* **API Testing:** cURL / Postman
+* **Version Control:** Git & GitHub
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## 🎯 Engineering Concepts
 
-## Learn More
+StreamForge focuses on real-world backend engineering concepts including:
 
-To learn more about Next.js, take a look at the following resources:
+* Asynchronous processing
+* Distributed job queues
+* Worker architecture
+* Retry strategies
+* Exponential backoff
+* Idempotency
+* Race-condition prevention
+* Database transactions
+* Partial unique indexes
+* Graceful shutdown
+* Concurrency control
+* Failure handling
+* Queue management
+* Observability and processing metrics
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## 📌 Example Workflow
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+1. Client uploads a file.
+2. API validates and stores the file.
+3. A processing job is created.
+4. Job is added to the BullMQ queue.
+5. Background worker picks up the job.
+6. Worker processes the stored file.
+7. Processing metadata is recorded.
+8. Job and file status are updated to `COMPLETED`.
+9. Failed jobs can automatically retry or be manually retried.
 
-## Deploy on Vercel
+## 📂 Project Goal
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+StreamForge was built to demonstrate how production-style backend systems handle **large workloads, asynchronous tasks, failures, retries, concurrency, and data consistency** without blocking API requests.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+The project is designed as a foundation that can be extended with features such as object storage, authentication, multiple processing pipelines, monitoring, rate limiting, and distributed workers.
