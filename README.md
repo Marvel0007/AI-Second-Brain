@@ -1,104 +1,102 @@
-# StreamForge — High-Performance File Processing & Background Job System
+# 🧠 AI Second Brain
 
-StreamForge is a scalable backend system for **asynchronous file processing** using **Node.js, TypeScript, Fastify, PostgreSQL, Prisma, Redis, and BullMQ**.
+AI-powered knowledge management platform that lets users **upload, organize, search, and chat with their personal documents** using Retrieval-Augmented Generation (RAG).
 
-The system separates file uploads from heavy background processing by using a reliable job queue, allowing the API to remain responsive while workers process files asynchronously.
+## ✨ Features
 
-## 🚀 Features
-
-* 📤 File upload and storage management
-* ⚡ Asynchronous background file processing
-* 🔄 BullMQ-based job queue with Redis
-* 🔁 Automatic job retries with exponential backoff
-* ❌ Job cancellation support
-* 🔂 Duplicate job prevention and idempotency
-* 🗄️ PostgreSQL database with Prisma ORM
-* 🔐 Database-level protection against concurrent active jobs
-* 📊 Job processing metadata and statistics
-* ⏸️ Queue pause/resume controls
-* 🧵 Configurable worker concurrency
-* 🐳 Dockerized PostgreSQL and Redis infrastructure
-* 🛡️ Centralized error handling and validation
-* ❤️ Graceful worker shutdown
-* 📈 Processing metrics such as processed bytes and processing time
-
-## 🏗️ Architecture
-
-```text
-Client
-  │
-  ▼
-Fastify API
-  │
-  ├── File Upload
-  │      │
-  │      ▼
-  │   Storage
-  │
-  └── Job Creation
-         │
-         ▼
-      Redis
-     BullMQ Queue
-         │
-         ▼
-   Background Worker
-         │
-         ▼
-   File Processing
-         │
-         ▼
- PostgreSQL
-   Job + File Status
-```
+* 📄 Upload and manage documents
+* 🔍 Semantic search using vector embeddings
+* 🤖 AI-powered document conversations
+* 🧠 RAG-based context-aware responses
+* 📚 Document chunking and vector storage
+* 🔐 User authentication
+* 🗂️ Workspace-based document organization
+* 💬 AI chat history
+* ⚡ Fast and scalable Next.js architecture
 
 ## 🛠️ Tech Stack
 
-* **Runtime:** Node.js
-* **Language:** TypeScript
-* **Framework:** Fastify
-* **Database:** PostgreSQL
-* **ORM:** Prisma
-* **Queue:** BullMQ
-* **Message Broker:** Redis
-* **Infrastructure:** Docker & Docker Compose
-* **Validation:** Zod
-* **API Testing:** cURL / Postman
-* **Version Control:** Git & GitHub
+* **Frontend:** Next.js, React, TypeScript, Tailwind CSS
+* **Backend:** Next.js / Node.js
+* **Database:** PostgreSQL, Prisma
+* **AI:** LLM APIs, LangChain
+* **Vector Database:** Pinecone
+* **Architecture:** RAG (Retrieval-Augmented Generation)
+* **Tools:** Git, GitHub, Vercel
 
-## 🎯 Engineering Concepts
+## 🏗️ How It Works
 
-StreamForge focuses on real-world backend engineering concepts including:
+```text
+Upload Document
+      ↓
+Document Processing
+      ↓
+Text Extraction & Chunking
+      ↓
+Generate Embeddings
+      ↓
+Store Vectors in Pinecone
+      ↓
+User asks a question
+      ↓
+Semantic Search
+      ↓
+Retrieve Relevant Context
+      ↓
+LLM generates response
+```
 
-* Asynchronous processing
-* Distributed job queues
-* Worker architecture
-* Retry strategies
-* Exponential backoff
-* Idempotency
-* Race-condition prevention
-* Database transactions
-* Partial unique indexes
-* Graceful shutdown
-* Concurrency control
-* Failure handling
-* Queue management
-* Observability and processing metrics
+## 🚀 Getting Started
 
-## 📌 Example Workflow
+### 1. Clone the repository
 
-1. Client uploads a file.
-2. API validates and stores the file.
-3. A processing job is created.
-4. Job is added to the BullMQ queue.
-5. Background worker picks up the job.
-6. Worker processes the stored file.
-7. Processing metadata is recorded.
-8. Job and file status are updated to `COMPLETED`.
-9. Failed jobs can automatically retry or be manually retried.
+```bash
+git clone https://github.com/Marvel0007/exam-notes-ai.git
+cd exam-notes-ai
+```
 
-## 📂 Project Goal
+### 2. Install dependencies
 
-StreamForge was built to demonstrate how production-style backend systems handle **large workloads, asynchronous tasks, failures, retries, concurrency, and data consistency** without blocking API requests.
+```bash
+npm install
+```
 
-The project is designed as a foundation that can be extended with features such as object storage, authentication, multiple processing pipelines, monitoring, rate limiting, and distributed workers.
+### 3. Configure environment variables
+
+Create a `.env.local` file:
+
+```env
+DATABASE_URL=
+PINECONE_API_KEY=
+OPENAI_API_KEY=
+```
+
+Add any additional environment variables required by your configuration.
+
+### 4. Start the development server
+
+```bash
+npm run dev
+```
+
+Open:
+
+```text
+http://localhost:3000
+```
+
+## 🎯 Future Improvements
+
+* Multi-modal document support
+* Better document processing pipelines
+* Advanced AI agents
+* Team collaboration
+* Voice-based interaction
+* Improved search and ranking
+* Usage analytics
+
+## 👨‍💻 Author
+
+**Shivam Shukla**
+
+GitHub: [@Marvel0007](https://github.com/Marvel0007)
