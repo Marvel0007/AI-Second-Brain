@@ -118,27 +118,27 @@ export function UploadBox() {
   };
 
   return (
-    <div className="rounded-2xl border bg-card/60 p-6 backdrop-blur-xs">
+    <div className="rounded-lg border border-border bg-card p-5">
       <div
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
         onDrop={handleDrop}
-        className={`flex flex-col items-center justify-center rounded-xl border-2 border-dashed p-8 text-center transition-all ${
+        className={`flex flex-col items-center justify-center rounded-md border border-dashed p-8 text-center transition-colors ${
           isDragging
-            ? "border-primary bg-primary/5 scale-[1.01]"
-            : "border-muted-foreground/25 hover:border-primary/50"
+            ? "border-foreground bg-muted/40"
+            : "border-border hover:border-muted-foreground/60"
         }`}
       >
-        <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-primary/10 text-primary">
-          <Upload className="h-6 w-6" />
+        <div className="flex h-10 w-10 items-center justify-center rounded-md bg-muted text-muted-foreground">
+          <Upload className="h-5 w-5" />
         </div>
 
-        <h3 className="mt-4 font-semibold text-base">
-          Upload knowledge document
+        <h3 className="mt-3 font-medium text-sm text-foreground">
+          Upload file
         </h3>
 
         <p className="mt-1 max-w-sm text-xs text-muted-foreground leading-relaxed">
-          Drag & drop or browse files. Supports PDF, Markdown (.md), TXT, JSON, CSV, and Code files up to 25MB.
+          Drag and drop or browse from your device. Supports PDF, Markdown (.md), TXT, JSON, CSV, and code files up to 25MB.
         </p>
 
         <input
@@ -153,21 +153,21 @@ export function UploadBox() {
           <Button
             type="button"
             variant="outline"
-            className="mt-5 rounded-xl cursor-pointer"
+            size="sm"
+            className="mt-4 text-xs font-normal"
             onClick={() => inputRef.current?.click()}
           >
-            <Upload className="mr-2 h-4 w-4" />
-            Select File from Device
+            Browse files
           </Button>
         ) : (
-          <div className="mt-5 w-full max-w-md animate-in fade-in duration-200">
-            <div className="flex items-center gap-3 rounded-xl border bg-card p-3 text-left shadow-xs">
-              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-muted">
+          <div className="mt-4 w-full max-w-sm">
+            <div className="flex items-center gap-3 rounded-md border border-border bg-background p-2.5 text-left">
+              <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded bg-muted">
                 {getFileIcon(file.name)}
               </div>
 
               <div className="min-w-0 flex-1">
-                <p className="truncate text-xs font-semibold">
+                <p className="truncate text-xs font-medium text-foreground">
                   {file.name}
                 </p>
                 <p className="text-[11px] text-muted-foreground">
@@ -182,44 +182,42 @@ export function UploadBox() {
                 onClick={removeFile}
                 disabled={uploading}
                 aria-label="Remove file"
-                className="h-7 w-7 rounded-lg"
+                className="h-6 w-6 rounded"
               >
-                <X className="h-3.5 w-3.5" />
+                <X className="h-3 w-3" />
               </Button>
             </div>
 
             {progressMsg && (
-              <div className="mt-3 flex items-center gap-2 text-xs text-primary font-medium animate-pulse">
-                <Loader2 className="h-3.5 w-3.5 animate-spin" />
+              <div className="mt-2.5 flex items-center gap-2 text-xs text-muted-foreground">
+                <Loader2 className="h-3 w-3 animate-spin text-foreground" />
                 <span>{progressMsg}</span>
               </div>
             )}
 
             <Button
               type="button"
-              className="mt-4 w-full rounded-xl gap-2 font-medium cursor-pointer"
+              size="sm"
+              className="mt-3 w-full bg-foreground text-background text-xs font-medium hover:opacity-90"
               onClick={handleUploadAndIndex}
               disabled={uploading}
             >
               {uploading ? (
                 <>
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                  <span>Processing & Indexing...</span>
+                  <Loader2 className="h-3.5 w-3.5 animate-spin mr-1.5" />
+                  <span>Processing...</span>
                 </>
               ) : (
-                <>
-                  <Sparkles className="h-4 w-4" />
-                  <span>Upload & Index with RAG</span>
-                </>
+                <span>Upload and index</span>
               )}
             </Button>
           </div>
         )}
 
         {error && (
-          <p className="mt-4 rounded-lg bg-destructive/10 px-3 py-1.5 text-xs text-destructive">
+          <div className="mt-3 w-full max-w-sm rounded border border-destructive/30 bg-destructive/10 px-3 py-2 text-xs text-destructive text-left">
             {error}
-          </p>
+          </div>
         )}
       </div>
     </div>

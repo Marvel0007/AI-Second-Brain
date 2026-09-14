@@ -16,7 +16,6 @@ import {
 
 const navigation = [
   {
-    category: "WORKSPACE",
     items: [
       {
         label: "Overview",
@@ -29,40 +28,25 @@ const navigation = [
         icon: FileText,
       },
       {
-        label: "Favorites",
-        href: "/dashboard/favorites",
-        icon: Star,
-      },
-    ],
-  },
-  {
-    category: "AI & RAG ENGINE",
-    items: [
-      {
-        label: "AI Assistant",
-        href: "/dashboard/chat",
-        icon: MessageSquare,
-      },
-      {
-        label: "Knowledge Search",
+        label: "Search",
         href: "/dashboard/search",
         icon: Search,
       },
       {
-        label: "Insights & Compare",
-        href: "/dashboard/insights",
-        icon: Sparkles,
+        label: "Assistant",
+        href: "/dashboard/chat",
+        icon: MessageSquare,
       },
       {
-        label: "RAG Evaluation",
+        label: "Favorites",
+        href: "/dashboard/favorites",
+        icon: Star,
+      },
+      {
+        label: "Benchmarks",
         href: "/dashboard/evaluation",
         icon: BarChart3,
       },
-    ],
-  },
-  {
-    category: "SYSTEM",
-    items: [
       {
         label: "Trash",
         href: "/dashboard/trash",
@@ -76,73 +60,54 @@ export function DashboardSidebar() {
   const pathname = usePathname();
 
   return (
-    <aside className="hidden w-64 shrink-0 border-r bg-card/60 backdrop-blur-md md:block">
+    <aside className="hidden w-60 shrink-0 border-r bg-card/40 backdrop-blur-sm md:block">
       <div className="sticky top-0 flex h-screen flex-col">
-        {/* Logo Header */}
-        <div className="flex h-16 items-center border-b px-5">
+        {/* Workspace Brand */}
+        <div className="flex h-14 items-center border-b px-5">
           <Link
             href="/dashboard"
-            className="flex items-center gap-2.5 font-semibold tracking-tight transition-opacity hover:opacity-90"
+            className="flex items-center gap-2.5 font-semibold text-sm tracking-tight text-foreground transition-opacity hover:opacity-85"
           >
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground shadow-xs">
+            <div className="flex h-7 w-7 items-center justify-center rounded-md bg-foreground text-background">
               <Brain className="h-4 w-4" />
             </div>
-
-            <div className="flex flex-col">
-              <span className="text-sm font-bold leading-none">BrainDock</span>
-              <span className="text-[10px] text-muted-foreground mt-0.5 font-mono">
-                AI Knowledge OS
-              </span>
-            </div>
+            <span className="font-semibold tracking-tight">BrainDock</span>
           </Link>
         </div>
 
-        {/* Navigation Sections */}
-        <nav className="flex-1 space-y-6 overflow-y-auto p-3.5">
-          {navigation.map((group) => (
-            <div key={group.category} className="space-y-1">
-              <p className="px-3 text-[10px] font-bold tracking-wider text-muted-foreground/70 uppercase">
-                {group.category}
-              </p>
+        {/* Navigation */}
+        <nav className="flex-1 overflow-y-auto px-3 py-4">
+          <div className="space-y-1">
+            {navigation[0].items.map((item) => {
+              const Icon = item.icon;
+              const isActive =
+                item.href === "/dashboard"
+                  ? pathname === "/dashboard"
+                  : pathname.startsWith(item.href);
 
-              <div className="space-y-0.5 pt-1">
-                {group.items.map((item) => {
-                  const Icon = item.icon;
-                  const isActive =
-                    item.href === "/dashboard"
-                      ? pathname === "/dashboard"
-                      : pathname.startsWith(item.href);
-
-                  return (
-                    <Link
-                      key={item.href}
-                      href={item.href}
-                      className={`flex items-center gap-3 rounded-lg px-3 py-2 text-xs font-medium transition-all ${
-                        isActive
-                          ? "bg-primary text-primary-foreground shadow-xs font-semibold"
-                          : "text-muted-foreground hover:bg-muted hover:text-foreground"
-                      }`}
-                    >
-                      <Icon className="h-4 w-4 shrink-0" />
-                      <span>{item.label}</span>
-                    </Link>
-                  );
-                })}
-              </div>
-            </div>
-          ))}
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  className={`flex items-center gap-2.5 rounded-md px-2.5 py-1.5 text-xs font-medium transition-colors ${
+                    isActive
+                      ? "bg-accent text-accent-foreground font-semibold"
+                      : "text-muted-foreground hover:bg-muted/60 hover:text-foreground"
+                  }`}
+                >
+                  <Icon className="h-4 w-4 shrink-0 opacity-80" />
+                  <span>{item.label}</span>
+                </Link>
+              );
+            })}
+          </div>
         </nav>
 
-        {/* Workspace Footer */}
-        <div className="border-t p-3 bg-muted/20">
-          <div className="flex items-center justify-between rounded-lg px-3 py-2 text-xs text-muted-foreground">
-            <span className="flex items-center gap-2">
-              <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
-              Hybrid RAG Active
-            </span>
-            <span className="font-mono text-[10px] border px-1.5 py-0.5 rounded bg-background">
-              v2.0
-            </span>
+        {/* Status Indicator */}
+        <div className="border-t px-4 py-3 text-[11px] text-muted-foreground">
+          <div className="flex items-center gap-2">
+            <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+            <span>Knowledge base connected</span>
           </div>
         </div>
       </div>

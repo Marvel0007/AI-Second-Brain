@@ -10,35 +10,31 @@ export default async function DocumentsPage() {
   const indexedCount = documents.filter((d) => d.status === "COMPLETED").length;
 
   return (
-    <div className="mx-auto w-full max-w-7xl space-y-8 animate-in fade-in duration-300">
-      {/* Header Banner */}
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between border-b pb-6">
+    <div className="mx-auto w-full max-w-6xl space-y-8">
+      {/* Header */}
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between border-b pb-5">
         <div>
-          <div className="flex items-center gap-2 text-primary font-medium text-xs mb-1">
-            <Sparkles className="h-3.5 w-3.5" />
-            <span>Knowledge Management</span>
-          </div>
-          <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">
-            Documents & Knowledge Base
+          <h1 className="text-xl font-semibold tracking-tight sm:text-2xl text-foreground">
+            Documents
           </h1>
-          <p className="mt-1 text-sm text-muted-foreground">
-            Upload PDFs, Markdown, TXT, and Code. Automatically parsed and indexed into Pinecone vector storage.
+          <p className="mt-1 text-xs text-muted-foreground">
+            Upload PDFs, Markdown, and text files. Content is parsed and indexed for search and citations.
           </p>
         </div>
 
-        <div className="flex items-center gap-3">
-          <div className="rounded-xl border bg-card/60 px-3.5 py-2 text-xs backdrop-blur-xs">
-            <span className="text-muted-foreground">Total Documents: </span>
+        <div className="flex items-center gap-2 text-xs">
+          <div className="rounded-md border border-border bg-card px-3 py-1.5">
+            <span className="text-muted-foreground">Total: </span>
             <span className="font-semibold text-foreground">{documents.length}</span>
           </div>
-          <div className="rounded-xl border bg-card/60 px-3.5 py-2 text-xs backdrop-blur-xs">
+          <div className="rounded-md border border-border bg-card px-3 py-1.5">
             <span className="text-muted-foreground">Indexed: </span>
-            <span className="font-semibold text-emerald-600 dark:text-emerald-400">{indexedCount}</span>
+            <span className="font-semibold text-emerald-600">{indexedCount}</span>
           </div>
           {totalTokens > 0 && (
-            <div className="rounded-xl border bg-card/60 px-3.5 py-2 text-xs backdrop-blur-xs">
+            <div className="rounded-md border border-border bg-card px-3 py-1.5">
               <span className="text-muted-foreground">Tokens: </span>
-              <span className="font-semibold text-primary">{totalTokens.toLocaleString()}</span>
+              <span className="font-semibold text-foreground">{totalTokens.toLocaleString()}</span>
             </div>
           )}
         </div>
