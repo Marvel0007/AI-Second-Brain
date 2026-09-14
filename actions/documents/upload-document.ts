@@ -60,27 +60,35 @@ export async function uploadDocument(formData: FormData) {
     );
   }
 
-  const blob = await put(
-    `workspaces/${workspace.id}/${crypto.randomUUID()}-${file.name}`,
-    file,
-    {
-      access: "public",
-    }
-  );
+  if (!process.env.BLOB_READ_WRITE_TOKEN) {
+    throw new Error("Missing Vercel Blob configuration. Please set BLOB_READ_WRITE_TOKEN in your .env file.");
+  }
 
-  const title = file.name.replace(/\.[^/.]+$/, "");
+  try {
+    const blob = await put(
+      `workspaces/${workspace.id}/${crypto.randomUUID()}-${file.name}`,
+      file,
+      {
+        access: "public",
+      }
+    );
 
-  const document = await prisma.document.create({
-    data: {
-      title,
-      fileName: file.name,
-      fileUrl: blob.url,
-      fileType: file.type || `text/${ext}`,
-      fileSize: file.size,
-      status: "PROCESSING",
-      workspaceId: workspace.id,
-    },
-  });
+    const title = file.name.replace(/\.[^/.]+$/, "");
 
-  return document;
+    const document = await prisma.document.create({
+      data: {
+        title,
+        fileName: file.name,
+        fileUrl: blob.url,
+        fileType: file.type || `text/${ext}`,
+        fileSize: file.size,
+        status: "PROCESSING",
+        workspaceId: workspace.id,
+      },
+    });
+
+    return document;
+  } catch (error: any) {
+    throw new Error(`Upload failed: ${error.message}`);
+  }
 }

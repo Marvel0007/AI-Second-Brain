@@ -3,7 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { hybridRetrieve } from "@/lib/rag/retrieval/hybrid-retriever";
 import { rerankChunks } from "@/lib/rag/reranking/cohere-reranker";
 import { buildGroundedContext } from "./context-builder";
-import { groq } from "@/lib/ai/groq";
+import { ai, convertMessagesToGenAI, GEMINI_MODEL, retryWithBackoff } from "@/lib/ai/gemini";
 import { RerankedChunk } from "@/lib/rag/reranking/types";
 
 export interface MultiDocComparisonParams {
@@ -132,17 +132,26 @@ ${comparisonTopic}
 EVIDENCE & SOURCE EXCERPTS:
 ${context.formattedContext || "No extractable excerpts found."}`;
 
-  const completion = await groq.chat.completions.create({
-    model: "llama-3.3-70b-versatile",
-    temperature: 0.15,
-    max_tokens: 1800,
-    messages: [
-      { role: "system", content: MULTI_DOC_SYSTEM_PROMPT },
-      { role: "user", content: prompt },
-    ],
-  });
+  const messages = [
+    { role: "system", content: MULTI_DOC_SYSTEM_PROMPT },
+    { role: "user", content: prompt },
+  ];
 
-  const answer = completion.choices[0]?.message?.content || "Failed to generate comparison.";
+  const { systemInstruction, contents } = convertMessagesToGenAI(messages);
+
+  const completion = await retryWithBackoff(() =>
+    ai.models.generateContent({
+      model: GEMINI_MODEL,
+      contents,
+      config: {
+        systemInstruction,
+        temperature: 0.15,
+        maxOutputTokens: 1800,
+      },
+    })
+  );
+
+  const answer = completion.text || "Failed to generate comparison.";
 
   return {
     comparisonAnswer: answer,

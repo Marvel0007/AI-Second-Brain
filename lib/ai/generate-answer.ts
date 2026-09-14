@@ -1,20 +1,15 @@
 import "server-only";
 
-import { groq } from "@/lib/ai/groq";
+import { ai, convertMessagesToGenAI, GEMINI_MODEL, retryWithBackoff } from "@/lib/ai/gemini";
 
 export async function generateAnswer(
   question: string,
   context: string
 ) {
-  const completion = await groq.chat.completions.create({
-    model: "llama-3.3-70b-versatile",
-    temperature: 0.2,
-    max_tokens: 1000,
-
-    messages: [
-      {
-        role: "system",
-        content: `
+  const messages = [
+    {
+      role: "system",
+      content: `
 You are BrainDock, an AI assistant that answers questions
 using the user's uploaded documents.
 
@@ -25,23 +20,35 @@ Rules:
   "I couldn't find that information in your documents."
 - Keep answers clear and concise.
 - Use Markdown when useful.
-        `.trim(),
-      },
-      {
-        role: "user",
-        content: `
+      `.trim(),
+    },
+    {
+      role: "user",
+      content: `
 CONTEXT:
 ${context}
 
 QUESTION:
 ${question}
-        `.trim(),
-      },
-    ],
-  });
+      `.trim(),
+    },
+  ];
 
-  const answer =
-    completion.choices[0]?.message?.content;
+  const { systemInstruction, contents } = convertMessagesToGenAI(messages);
+
+  const completion = await retryWithBackoff(() =>
+    ai.models.generateContent({
+      model: GEMINI_MODEL,
+      contents,
+      config: {
+        systemInstruction,
+        temperature: 0.2,
+        maxOutputTokens: 1000,
+      },
+    })
+  );
+
+  const answer = completion.text;
 
   if (!answer) {
     throw new Error("Failed to generate AI answer");

@@ -3,7 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { retrieveWithQueryExpansion } from "@/lib/rag/reasoning/multi-query-retriever";
 import { rerankChunks } from "@/lib/rag/reranking/cohere-reranker";
 import { buildGroundedContext, BuiltContext } from "@/lib/rag/reasoning/context-builder";
-import { groq } from "@/lib/ai/groq";
+import { ai, convertMessagesToGenAI, GEMINI_MODEL, retryWithBackoff } from "@/lib/ai/gemini";
 import { AnalyzedQuery } from "@/lib/rag/reasoning/query-analyzer";
 
 export interface RagPipelineResult {
@@ -48,7 +48,7 @@ export async function executeRagPipeline({
   documentIds,
   collectionId,
   chatHistory = [],
-  model = "llama-3.3-70b-versatile",
+  model = GEMINI_MODEL,
 }: RagExecutionOptions): Promise<RagPipelineResult> {
   const overallStart = Date.now();
 
@@ -93,14 +93,21 @@ export async function executeRagPipeline({
     },
   ];
 
-  const completion = await groq.chat.completions.create({
-    model,
-    temperature: 0.15,
-    max_tokens: 1200,
-    messages,
-  });
+  const { systemInstruction, contents } = convertMessagesToGenAI(messages);
 
-  const answer = completion.choices[0]?.message?.content || "Failed to generate an answer.";
+  const completion = await retryWithBackoff(() =>
+    ai.models.generateContent({
+      model,
+      contents,
+      config: {
+        systemInstruction,
+        temperature: 0.15,
+        maxOutputTokens: 1200,
+      },
+    })
+  );
+
+  const answer = completion.text || "Failed to generate an answer.";
   const generationMs = Date.now() - genStart;
   const totalMs = Date.now() - overallStart;
 

@@ -1,5 +1,5 @@
 import "server-only";
-import { groq } from "@/lib/ai/groq";
+import { ai, convertMessagesToGenAI, GEMINI_MODEL, retryWithBackoff } from "@/lib/ai/gemini";
 
 export interface AnalyzedQuery {
   originalQuery: string;
@@ -35,15 +35,10 @@ export async function analyzeAndRewriteQuery(
   }
 
   try {
-    const response = await groq.chat.completions.create({
-      model: "llama-3.3-70b-versatile",
-      temperature: 0.1,
-      max_tokens: 400,
-      response_format: { type: "json_object" },
-      messages: [
-        {
-          role: "system",
-          content: `You are an expert Information Retrieval and RAG Query Optimizer.
+    const messages = [
+      {
+        role: "system",
+        content: `You are an expert Information Retrieval and RAG Query Optimizer.
 Analyze the user's question and generate an optimized search representation.
 
 Respond with a JSON object containing:
@@ -52,15 +47,29 @@ Respond with a JSON object containing:
 - "rewrittenQueries": array of 2-3 distinct, specific search queries that rephrase the question from different semantic angles
 - "keywords": array of 3-6 exact technical terms, acronyms, or proper nouns extracted from the question
 - "hypotheticalPassage": a 1-2 sentence hypothetical answer excerpt that would appear in an authoritative document to answer this query (HyDE)`.trim(),
-        },
-        {
-          role: "user",
-          content: `User Question: "${query}"`,
-        },
-      ],
-    });
+      },
+      {
+        role: "user",
+        content: `User Question: "${query}"`,
+      },
+    ];
 
-    const text = response.choices[0]?.message?.content;
+    const { systemInstruction, contents } = convertMessagesToGenAI(messages);
+
+    const response = await retryWithBackoff(() =>
+      ai.models.generateContent({
+        model: GEMINI_MODEL,
+        contents,
+        config: {
+          systemInstruction,
+          temperature: 0.1,
+          maxOutputTokens: 400,
+          responseMimeType: "application/json",
+        },
+      })
+    );
+
+    const text = response.text;
     if (!text) throw new Error("Empty query optimizer response");
 
     const parsed = JSON.parse(text) as {

@@ -12,6 +12,7 @@
   "dependencies": {
     "@base-ui/react": "^1.7.0",
     "@clerk/nextjs": "^7.7.6",
+    "@google/genai": "^2.22.0",
     "@pinecone-database/pinecone": "^8.2.0",
     "@prisma/adapter-pg": "^7.9.1",
     "@prisma/client": "^7.9.1",
@@ -23,7 +24,6 @@
     "groq-sdk": "^1.5.0",
     "lucide-react": "^1.31.0",
     "next": "16.3.1",
-    "openai": "^7.4.0",
     "pg": "^8.23.0",
     "react": "19.2.8",
     "react-dom": "19.2.8",

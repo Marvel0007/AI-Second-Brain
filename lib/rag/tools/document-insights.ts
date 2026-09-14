@@ -1,6 +1,6 @@
 import "server-only";
 import { prisma } from "@/lib/prisma";
-import { groq } from "@/lib/ai/groq";
+import { ai, convertMessagesToGenAI, GEMINI_MODEL, retryWithBackoff } from "@/lib/ai/gemini";
 
 export interface DocumentSummaryResult {
   tldr: string;
@@ -72,15 +72,10 @@ export async function generateDocumentSummary(
 ): Promise<DocumentSummaryResult> {
   const text = await getDocumentFullText(documentId, workspaceId);
 
-  const response = await groq.chat.completions.create({
-    model: "llama-3.3-70b-versatile",
-    temperature: 0.2,
-    max_tokens: 1200,
-    response_format: { type: "json_object" },
-    messages: [
-      {
-        role: "system",
-        content: `You are BrainDock's Senior Knowledge Distillation Engine.
+  const messages = [
+    {
+      role: "system",
+      content: `You are BrainDock's Senior Knowledge Distillation Engine.
 Analyze the provided document text and generate an executive summary.
 
 Respond with a JSON object:
@@ -88,15 +83,29 @@ Respond with a JSON object:
 - "keyConcepts": array of 4-8 central concepts, technologies, or entities
 - "mainTakeaways": array of 4-7 critical conclusions or architectural principles
 - "actionItems": array of 2-5 actionable next steps or recommendations if applicable`.trim(),
-      },
-      {
-        role: "user",
-        content: `DOCUMENT EXCERPTS:\n${text}`,
-      },
-    ],
-  });
+    },
+    {
+      role: "user",
+      content: `DOCUMENT EXCERPTS:\n${text}`,
+    },
+  ];
 
-  const rawJson = response.choices[0]?.message?.content || "{}";
+  const { systemInstruction, contents } = convertMessagesToGenAI(messages);
+
+  const response = await retryWithBackoff(() =>
+    ai.models.generateContent({
+      model: GEMINI_MODEL,
+      contents,
+      config: {
+        systemInstruction,
+        temperature: 0.2,
+        maxOutputTokens: 1200,
+        responseMimeType: "application/json",
+      },
+    })
+  );
+
+  const rawJson = response.text || "{}";
   const parsed = JSON.parse(rawJson) as {
     tldr?: string;
     keyConcepts?: string[];
@@ -135,14 +144,10 @@ export async function generateStudyNotes(
 ): Promise<StudyNotesResult> {
   const text = await getDocumentFullText(documentId, workspaceId);
 
-  const response = await groq.chat.completions.create({
-    model: "llama-3.3-70b-versatile",
-    temperature: 0.2,
-    max_tokens: 1800,
-    messages: [
-      {
-        role: "system",
-        content: `You are an elite Academic and Engineering Study Guide Creator.
+  const messages = [
+    {
+      role: "system",
+      content: `You are an elite Academic and Engineering Study Guide Creator.
 Transform the provided document into comprehensive, structured study notes.
 
 Structure:
@@ -152,15 +157,28 @@ Structure:
 ## 3. Key Terminology & Definitions
 ## 4. Deep Dive Concepts & Code/Formulas (if applicable)
 ## 5. Review & Self-Check Questions`.trim(),
-      },
-      {
-        role: "user",
-        content: `DOCUMENT CONTENT:\n${text}`,
-      },
-    ],
-  });
+    },
+    {
+      role: "user",
+      content: `DOCUMENT CONTENT:\n${text}`,
+    },
+  ];
 
-  const notesMarkdown = response.choices[0]?.message?.content || "Failed to generate study notes.";
+  const { systemInstruction, contents } = convertMessagesToGenAI(messages);
+
+  const response = await retryWithBackoff(() =>
+    ai.models.generateContent({
+      model: GEMINI_MODEL,
+      contents,
+      config: {
+        systemInstruction,
+        temperature: 0.2,
+        maxOutputTokens: 1800,
+      },
+    })
+  );
+
+  const notesMarkdown = response.text || "Failed to generate study notes.";
 
   return {
     title: "Study Notes",
@@ -177,29 +195,38 @@ export async function generateFlashcardsAndQuiz(
 ): Promise<{ flashcards: Flashcard[]; quiz: QuizQuestion[] }> {
   const text = await getDocumentFullText(documentId, workspaceId);
 
-  const response = await groq.chat.completions.create({
-    model: "llama-3.3-70b-versatile",
-    temperature: 0.25,
-    max_tokens: 1800,
-    response_format: { type: "json_object" },
-    messages: [
-      {
-        role: "system",
-        content: `You are BrainDock's Knowledge Testing Engine.
+  const messages = [
+    {
+      role: "system",
+      content: `You are BrainDock's Knowledge Testing Engine.
 Generate active-recall study flashcards and multiple-choice quiz questions based strictly on the document text.
 
 Respond with a JSON object:
 - "flashcards": array of 5-8 objects: { "question": string, "answer": string, "hint": string }
 - "quiz": array of 4-6 objects: { "question": string, "options": string[] (length 4), "correctIndex": number (0-3), "explanation": string }`.trim(),
-      },
-      {
-        role: "user",
-        content: `DOCUMENT CONTENT:\n${text}`,
-      },
-    ],
-  });
+    },
+    {
+      role: "user",
+      content: `DOCUMENT CONTENT:\n${text}`,
+    },
+  ];
 
-  const rawJson = response.choices[0]?.message?.content || "{}";
+  const { systemInstruction, contents } = convertMessagesToGenAI(messages);
+
+  const response = await retryWithBackoff(() =>
+    ai.models.generateContent({
+      model: GEMINI_MODEL,
+      contents,
+      config: {
+        systemInstruction,
+        temperature: 0.25,
+        maxOutputTokens: 1800,
+        responseMimeType: "application/json",
+      },
+    })
+  );
+
+  const rawJson = response.text || "{}";
   const parsed = JSON.parse(rawJson) as {
     flashcards?: Flashcard[];
     quiz?: QuizQuestion[];

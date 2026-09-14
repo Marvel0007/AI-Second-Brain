@@ -188,6 +188,7 @@ export default function ChatWindow({ chatId }: ChatWindowProps) {
         body: JSON.stringify({
           chatId,
           content: textToSend,
+          messageId: userMsgId,
         }),
       });
 
@@ -351,8 +352,8 @@ export default function ChatWindow({ chatId }: ChatWindowProps) {
                   <div
                     className={
                       isUser
-                        ? "rounded-2xl rounded-tr-xs bg-primary px-4 py-3 text-primary-foreground shadow-sm"
-                        : "rounded-2xl rounded-tl-xs border bg-card/95 p-5 shadow-xs backdrop-blur-xs"
+                        ? "rounded-2xl rounded-tr-xs bg-gradient-to-br from-primary to-primary/80 px-4 py-3 text-primary-foreground shadow-md transition-shadow"
+                        : "rounded-2xl rounded-tl-xs border border-border/50 bg-card/95 p-5 shadow-sm backdrop-blur-md"
                     }
                   >
                     {isUser ? (

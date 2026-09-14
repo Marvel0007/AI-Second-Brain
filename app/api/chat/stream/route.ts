@@ -4,7 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { retrieveWithQueryExpansion } from "@/lib/rag/reasoning/multi-query-retriever";
 import { rerankChunks } from "@/lib/rag/reranking/cohere-reranker";
 import { buildGroundedContext } from "@/lib/rag/reasoning/context-builder";
-import { groq } from "@/lib/ai/groq";
+import { ai, convertMessagesToGenAI, GEMINI_MODEL, retryWithBackoff } from "@/lib/ai/gemini";
 import { SYSTEM_PROMPT_RAG } from "@/lib/rag/pipeline/rag-engine";
 
 export const dynamic = "force-dynamic";
@@ -28,7 +28,7 @@ export async function POST(req: NextRequest) {
   const workspace = user.workspaces[0];
 
   const body = await req.json();
-  const { chatId, content, documentIds, collectionId } = body;
+  const { chatId, content, documentIds, collectionId, messageId } = body;
 
   const rawMessage = typeof content === "string" ? content.trim() : "";
 
@@ -50,6 +50,7 @@ export async function POST(req: NextRequest) {
   // 1. Save user message to database
   await prisma.message.create({
     data: {
+      id: messageId || undefined,
       chatId: chat.id,
       role: "USER",
       content: rawMessage,
@@ -141,18 +142,24 @@ export async function POST(req: NextRequest) {
           },
         ];
 
-        const groqStream = await groq.chat.completions.create({
-          model: "llama-3.3-70b-versatile",
-          temperature: 0.15,
-          max_tokens: 1400,
-          stream: true,
-          messages,
-        });
+        const { systemInstruction, contents } = convertMessagesToGenAI(messages);
 
         let fullAnswer = "";
 
-        for await (const chunk of groqStream) {
-          const token = chunk.choices[0]?.delta?.content || "";
+        const stream = await retryWithBackoff(() =>
+          ai.models.generateContentStream({
+            model: GEMINI_MODEL,
+            contents,
+            config: {
+              systemInstruction,
+              temperature: 0.15,
+              maxOutputTokens: 1400,
+            },
+          })
+        );
+
+        for await (const chunk of stream) {
+          const token = chunk.text || "";
           if (token) {
             fullAnswer += token;
             sendEvent("token", { token });
@@ -206,7 +213,7 @@ export async function POST(req: NextRequest) {
             totalMs,
             chunksRetrieved: multiQueryResult.chunks.length,
             chunksReranked: rerankedChunks.length,
-            model: "llama-3.3-70b-versatile",
+            model: "gemini-flash-latest",
             success: true,
           },
         }).catch((e) => console.error("[Pipeline Telemetry Error]", e));

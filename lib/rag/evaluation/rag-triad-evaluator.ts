@@ -1,5 +1,5 @@
 import "server-only";
-import { groq } from "@/lib/ai/groq";
+import { ai, convertMessagesToGenAI, GEMINI_MODEL, retryWithBackoff } from "@/lib/ai/gemini";
 
 export interface RagTriadScores {
   faithfulnessScore: number;       // 0.0 - 1.0 (Claim-level grounding)
@@ -63,18 +63,27 @@ GENERATED ANSWER:
 ${generatedAnswer}`;
 
   try {
-    const response = await groq.chat.completions.create({
-      model: "llama-3.3-70b-versatile",
-      temperature: 0.0,
-      max_tokens: 1000,
-      response_format: { type: "json_object" },
-      messages: [
-        { role: "system", content: EVALUATION_SYSTEM_PROMPT },
-        { role: "user", content: prompt },
-      ],
-    });
+    const messages = [
+      { role: "system", content: EVALUATION_SYSTEM_PROMPT },
+      { role: "user", content: prompt },
+    ];
 
-    const text = response.choices[0]?.message?.content || "{}";
+    const { systemInstruction, contents } = convertMessagesToGenAI(messages);
+
+    const response = await retryWithBackoff(() =>
+      ai.models.generateContent({
+        model: GEMINI_MODEL,
+        contents,
+        config: {
+          systemInstruction,
+          temperature: 0.0,
+          maxOutputTokens: 1000,
+          responseMimeType: "application/json",
+        },
+      })
+    );
+
+    const text = response.text || "{}";
     const parsed = JSON.parse(text) as Partial<RagTriadScores>;
 
     const faithfulnessScore = Math.max(0, Math.min(1, parsed.faithfulnessScore ?? 0.9));
