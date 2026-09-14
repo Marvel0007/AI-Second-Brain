@@ -78,11 +78,21 @@ export function UploadBox() {
       formData.append("file", file);
 
       // 1. Upload file and create document record
-      const doc = await uploadDocument(formData);
+      const uploadRes = await uploadDocument(formData);
+      if (!uploadRes.success) {
+        setError(uploadRes.error);
+        setProgressMsg("");
+        return;
+      }
 
       // 2. Automatically chunk and embed in Pinecone
       setProgressMsg("Parsing document structure & indexing vectors in Pinecone...");
-      await processDocument(doc.id);
+      const processRes = await processDocument(uploadRes.document.id);
+      if (!processRes.success) {
+        setError(`File uploaded, but indexing failed: ${processRes.error}`);
+        setProgressMsg("");
+        return;
+      }
 
       setProgressMsg("Completed! Refreshing knowledge base...");
       removeFile();

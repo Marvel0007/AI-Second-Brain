@@ -22,6 +22,11 @@ export function ProcessDocumentButton({
 
       const result = await processDocument(documentId);
 
+      if (!result.success) {
+        setMessage(`Indexing failed: ${result.error}`);
+        return;
+      }
+
       setMessage(`Indexed ${result.chunkCount} chunks (${result.totalTokens} tokens) successfully!`);
 
       setTimeout(() => {

@@ -3,15 +3,20 @@ import { CohereClientV2 } from "cohere-ai";
 import { FusedRetrievedChunk } from "@/lib/rag/retrieval/types";
 import { RerankedChunk, RerankOptions } from "./types";
 
-const apiKey = process.env.COHERE_API_KEY;
+let _cohere: CohereClientV2 | null = null;
 
-if (!apiKey) {
-  throw new Error("Missing COHERE_API_KEY environment variable");
+function getCohereClient() {
+  const apiKey = process.env.COHERE_API_KEY;
+  if (!apiKey) {
+    throw new Error("Missing COHERE_API_KEY environment variable. Please set COHERE_API_KEY in your Vercel/environment settings.");
+  }
+  if (!_cohere) {
+    _cohere = new CohereClientV2({
+      token: apiKey,
+    });
+  }
+  return _cohere;
 }
-
-const cohere = new CohereClientV2({
-  token: apiKey,
-});
 
 export const DEFAULT_RERANK_MODEL = "rerank-v3.5";
 
@@ -50,7 +55,7 @@ export async function rerankChunks(
       return `Document: ${chunk.documentTitle}\n${headerPrefix}${chunk.content}`;
     });
 
-    const response = await cohere.rerank({
+    const response = await getCohereClient().rerank({
       model,
       query,
       documents: documentsForRerank,

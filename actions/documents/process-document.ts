@@ -5,21 +5,40 @@ import { prisma } from "@/lib/prisma";
 import { chunkDocument } from "./chunk-document";
 import { embedDocument } from "./embed-document";
 
-export async function processDocument(documentId: string) {
-  const workspace = await requireCurrentWorkspace();
+export type ProcessDocumentResult =
+  | {
+      success: true;
+      documentId: string;
+      chunkCount: number;
+      totalTokens: number;
+      chunksProcessed: number;
+      status: "COMPLETED";
+    }
+  | {
+      success: false;
+      error: string;
+    };
 
-  const document = await prisma.document.findFirst({
-    where: {
-      id: documentId,
-      workspaceId: workspace.id,
-    },
-  });
-
-  if (!document) {
-    throw new Error("Document not found");
-  }
-
+export async function processDocument(
+  documentId: string
+): Promise<ProcessDocumentResult> {
   try {
+    const workspace = await requireCurrentWorkspace();
+
+    const document = await prisma.document.findFirst({
+      where: {
+        id: documentId,
+        workspaceId: workspace.id,
+      },
+    });
+
+    if (!document) {
+      return {
+        success: false,
+        error: "Document not found in current workspace",
+      };
+    }
+
     await prisma.document.update({
       where: { id: document.id },
       data: { status: "PROCESSING" },
@@ -37,20 +56,26 @@ export async function processDocument(documentId: string) {
     });
 
     return {
+      success: true,
       documentId,
       chunkCount: chunkResult.chunkCount,
       totalTokens: chunkResult.totalTokens,
       chunksProcessed: embedResult.chunksProcessed,
       status: "COMPLETED",
     };
-  } catch (error) {
+  } catch (error: any) {
     console.error(`[Process Document Error] ID: ${documentId}`, error);
 
-    await prisma.document.update({
-      where: { id: document.id },
-      data: { status: "FAILED" },
-    });
+    try {
+      await prisma.document.update({
+        where: { id: documentId },
+        data: { status: "FAILED" },
+      });
+    } catch (_) {}
 
-    throw error;
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : `Processing failed: ${String(error)}`,
+    };
   }
 }

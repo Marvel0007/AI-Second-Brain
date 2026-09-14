@@ -1,15 +1,20 @@
 import "server-only";
 import { CohereClientV2 } from "cohere-ai";
 
-const apiKey = process.env.COHERE_API_KEY;
+let _cohere: CohereClientV2 | null = null;
 
-if (!apiKey) {
-  throw new Error("Missing COHERE_API_KEY environment variable");
+function getCohereClient() {
+  const apiKey = process.env.COHERE_API_KEY;
+  if (!apiKey) {
+    throw new Error("Missing COHERE_API_KEY environment variable. Please set COHERE_API_KEY in your Vercel/environment settings.");
+  }
+  if (!_cohere) {
+    _cohere = new CohereClientV2({
+      token: apiKey,
+    });
+  }
+  return _cohere;
 }
-
-const cohere = new CohereClientV2({
-  token: apiKey,
-});
 
 export const EMBEDDING_MODEL = "embed-english-v3.0";
 export const EMBEDDING_DIMENSION = 1024;
@@ -31,7 +36,8 @@ export async function generateBatchEmbeddings(
     const batchTexts = texts.slice(i, i + MAX_COHERE_BATCH_SIZE);
 
     const batchEmbeddings = await callWithRetry(async () => {
-      const response = await cohere.embed({
+      const client = getCohereClient();
+      const response = await client.embed({
         model: EMBEDDING_MODEL,
         texts: batchTexts,
         inputType,

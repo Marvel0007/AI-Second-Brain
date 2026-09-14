@@ -31,45 +31,75 @@ const ALLOWED_MIME_PREFIXES = [
   "application/javascript",
 ];
 
-export async function uploadDocument(formData: FormData) {
-  const workspace = await requireCurrentWorkspace();
+export type UploadDocumentResult =
+  | {
+      success: true;
+      document: {
+        id: string;
+        title: string;
+        fileName: string;
+        fileUrl: string;
+        fileType: string | null;
+        fileSize: number | null;
+        status: string;
+        createdAt: string;
+        updatedAt: string;
+      };
+    }
+  | {
+      success: false;
+      error: string;
+    };
 
-  const file = formData.get("file");
-
-  if (!(file instanceof File)) {
-    throw new Error("No file provided");
-  }
-
-  if (file.size === 0) {
-    throw new Error("File is empty");
-  }
-
-  if (file.size > MAX_FILE_SIZE) {
-    throw new Error("File size exceeds maximum allowed size of 25MB");
-  }
-
-  const ext = file.name.split(".").pop()?.toLowerCase() || "";
-  const isAllowedExt = ALLOWED_EXTENSIONS.includes(ext);
-  const isAllowedMime =
-    file.type &&
-    ALLOWED_MIME_PREFIXES.some((prefix) => file.type.startsWith(prefix));
-
-  if (!isAllowedExt && !isAllowedMime) {
-    throw new Error(
-      `Unsupported file format (.${ext}). Supported formats: PDF, Markdown, Text, Code, JSON, and CSV.`
-    );
-  }
-
-  if (!process.env.BLOB_READ_WRITE_TOKEN) {
-    throw new Error("Missing Vercel Blob configuration. Please set BLOB_READ_WRITE_TOKEN in your .env file.");
-  }
-
+export async function uploadDocument(formData: FormData): Promise<UploadDocumentResult> {
   try {
+    const workspace = await requireCurrentWorkspace();
+
+    const file = formData.get("file");
+
+    if (!(file instanceof File)) {
+      return { success: false, error: "No file provided" };
+    }
+
+    if (file.size === 0) {
+      return { success: false, error: "The uploaded file is empty." };
+    }
+
+    if (file.size > MAX_FILE_SIZE) {
+      return {
+        success: false,
+        error: "File size exceeds the maximum allowed limit of 25MB.",
+      };
+    }
+
+    const ext = file.name.split(".").pop()?.toLowerCase() || "";
+    const isAllowedExt = ALLOWED_EXTENSIONS.includes(ext);
+    const isAllowedMime =
+      file.type &&
+      ALLOWED_MIME_PREFIXES.some((prefix) => file.type.startsWith(prefix));
+
+    if (!isAllowedExt && !isAllowedMime) {
+      return {
+        success: false,
+        error: `Unsupported file format (.${ext}). Supported formats: PDF, Markdown, Text, Code, JSON, and CSV.`,
+      };
+    }
+
+    const blobToken = process.env.BLOB_READ_WRITE_TOKEN;
+    if (!blobToken) {
+      return {
+        success: false,
+        error:
+          "Missing BLOB_READ_WRITE_TOKEN in Vercel environment variables. Please add BLOB_READ_WRITE_TOKEN to your Vercel Project Settings → Environment Variables and redeploy.",
+      };
+    }
+
     const blob = await put(
       `workspaces/${workspace.id}/${crypto.randomUUID()}-${file.name}`,
       file,
       {
         access: "public",
+        token: blobToken,
       }
     );
 
@@ -87,21 +117,25 @@ export async function uploadDocument(formData: FormData) {
       },
     });
 
-    // Return a plain JSON-safe object — raw Prisma objects contain
-    // Date instances that are NOT serializable across the Server Action
-    // boundary and cause React error #441.
     return {
-      id: document.id,
-      title: document.title,
-      fileName: document.fileName,
-      fileUrl: document.fileUrl,
-      fileType: document.fileType,
-      fileSize: document.fileSize,
-      status: document.status,
-      createdAt: document.createdAt.toISOString(),
-      updatedAt: document.updatedAt.toISOString(),
+      success: true,
+      document: {
+        id: document.id,
+        title: document.title,
+        fileName: document.fileName,
+        fileUrl: document.fileUrl,
+        fileType: document.fileType,
+        fileSize: document.fileSize,
+        status: document.status,
+        createdAt: document.createdAt.toISOString(),
+        updatedAt: document.updatedAt.toISOString(),
+      },
     };
   } catch (error: any) {
-    throw new Error(`Upload failed: ${error.message}`);
+    console.error("[Upload Document Error]", error);
+    return {
+      success: false,
+      error: `Upload failed: ${error?.message || "Unknown error"}`,
+    };
   }
 }
