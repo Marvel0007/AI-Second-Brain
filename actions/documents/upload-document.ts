@@ -87,7 +87,20 @@ export async function uploadDocument(formData: FormData) {
       },
     });
 
-    return document;
+    // Return a plain JSON-safe object — raw Prisma objects contain
+    // Date instances that are NOT serializable across the Server Action
+    // boundary and cause React error #441.
+    return {
+      id: document.id,
+      title: document.title,
+      fileName: document.fileName,
+      fileUrl: document.fileUrl,
+      fileType: document.fileType,
+      fileSize: document.fileSize,
+      status: document.status,
+      createdAt: document.createdAt.toISOString(),
+      updatedAt: document.updatedAt.toISOString(),
+    };
   } catch (error: any) {
     throw new Error(`Upload failed: ${error.message}`);
   }
