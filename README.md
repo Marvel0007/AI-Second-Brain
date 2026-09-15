@@ -2,6 +2,11 @@
 
 AI-powered knowledge management platform that lets users **upload, organize, search, and chat with their personal documents** using Retrieval-Augmented Generation (RAG).
 
+## 🎥 Demo Video
+
+▶️ **Watch the Project Demo:**
+https://www.youtube.com/watch?v=hZ1qRb72VWM
+
 ## ✨ Features
 
 * 📄 Upload and manage documents
@@ -51,8 +56,8 @@ LLM generates response
 ### 1. Clone the repository
 
 ```bash
-git clone https://github.com/Marvel0007/exam-notes-ai.git
-cd exam-notes-ai
+git clone https://github.com/Marvel0007/ai-second-brain.git
+cd ai-second-brain
 ```
 
 ### 2. Install dependencies
